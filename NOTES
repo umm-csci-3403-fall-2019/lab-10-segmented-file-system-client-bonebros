@@ -1,0 +1,44 @@
+* most netwrok protococls are built on TCP.
+
+	- tries hard to ensure delivery
+	ex. If I said a packet, then reciever sends an 'Ack' to me.
+		If the ack doesn't come, i'll send it again.
+		ALSO...if the packet seems gargled or broken, TCP will request the packet from me again
+
+	- also fixes out-of-order packets
+	ex. If a packet is corrupted, it gets resent. But packets are sent in order.
+		Also, packets can be routed differently. This can also affect rearragent the order.
+
+BUT! We don't always want to use TCP.....
+
+* We might use 'UDP protocal' - (typically used for streaming.)
+
+	- If there's something missing, it gets skipped. This is fine if packets are small.
+		** TCP cannot do this!!
+
+	- UDP makes no promise about delivery, does no resending, and packets come in whatever order.
+
+
+* Packets generally have 'header' information (meta-data)
+
+	- Writing a client for this requires understanding how this pertains to  UDP protocol.
+	- We can use packet as an abstract class (status byte/file idea)
+		* We can have header/data packets as subclasses (packet numbers, other data, etc)
+	- makePacket(buffer)
+		* Check status byte to ID header or data packet, then return something appropriate
+
+** WRITE UNIT TESTS FOR PACKET HANDLING!!!! **
+
+========================================================================
+
+WRITE-UP NOTES:
+
+Java provides direct support for UPD/datagram sockets primarily through the DatagramSocket and DatagramPacket classes.
+See the tutorial Writing a Datagram Client and Server for more;
+what you care about is down in the "The QuoteClient class" section.
+
+Note that you'll need to look at the length field in the received packet to figure out how many bytes are in
+"the rest of the bytes in the package". Most of the received packets will probably be "full", but the last packet
+is likely to be "short". You may assume that the maximum packet size, however, is 1028 bytes
+(a data packet with 4 bytes of bookkeeping and 1024 bytes of data).
+
