@@ -6,12 +6,6 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Main {
-
-    int port;
-    InetAddress address;
-    DatagramSocket socket = null;
-    DatagramPacket packet;
-    byte[] sendBuf = new byte[256];
     
     public static void main(String[] args) throws IOException {
 
