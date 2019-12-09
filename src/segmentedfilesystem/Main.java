@@ -3,6 +3,7 @@ package segmentedfilesystem;
 import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class Main {
@@ -59,14 +60,19 @@ public class Main {
 //                case "pall":
 //                    pAll(allPacketData);
 //                    break;
+                case "list":
+                    sortPacketsById(allPacketData);
+                    break;
+                case "files":
+                    System.out.println("Making files...");
+                    makeFiles(allPacketData);
+                    break;
                 case "q":
                     System.out.println("leaving...");
                     return;
             }
             System.out.println("Anything else?");
-
         }
-
     }
 
     public static void queryPacket(PacketData packetData) {
@@ -92,11 +98,65 @@ public class Main {
                 System.out.println( packetData.header);
             }
             else if (input.equals("num")) {
-                System.out.println( packetData.packetNumber );
+                packetData.printPacketNumber();
             }
 
-            System.out.println("Enter another index? (Enter 'q' to return to DEBUG ... 'h' for help)");
+            System.out.println("Enter another query? (Enter 'q' to return to DEBUG ... 'h' for help)");
         }
+    }
+
+    public static ArrayList<Byte> getUniqueIds(ArrayList<PacketData> allPacketData) {
+        ArrayList<Byte> ids = new ArrayList<>();
+        for (PacketData packetData : allPacketData) {
+            if (! (ids.contains(packetData.fileId))) {
+                ids.add(packetData.fileId);
+            }
+        }
+        System.out.println(ids);
+        return ids;
+    }
+
+    public static ArrayList<ArrayList<PacketData>> sortPacketsById(ArrayList<PacketData> allPacketData) {
+        ArrayList<PacketData> file1 = new ArrayList<>();
+        ArrayList<PacketData> file2 = new ArrayList<>();
+        ArrayList<PacketData> file3 = new ArrayList<>();
+
+        ArrayList<Byte> uniqueIds = getUniqueIds(allPacketData);
+
+        for(PacketData packetData: allPacketData) {
+            if(packetData.fileId == uniqueIds.get(0)){
+                file1.add(packetData);
+            } else if(packetData.fileId == uniqueIds.get(1)){
+                file2.add(packetData);
+            } else {
+                file3.add(packetData);
+            }
+        }
+
+        System.out.println("f1: " + file1.size());
+        System.out.println("f2: " + file2.size());
+        System.out.println("f3: " + file3.size());
+
+        ArrayList<ArrayList<PacketData>> filesList = new ArrayList<>();
+        filesList.add(file1); filesList.add(file2); filesList.add(file3);
+
+        return filesList;
+    }
+
+    public static ArrayList<PacketData> makeFiles(ArrayList<PacketData> allPacketData) {
+
+        // Take the packet list, sort into separate (unsorted) arrays by file
+        ArrayList<ArrayList<PacketData>> unsortedFiles = sortPacketsById(allPacketData);
+
+        for (ArrayList<PacketData> unsortedFile : unsortedFiles) {
+            unsortedFile.sort(new FileSorter());
+            System.out.println("first packet:" + unsortedFile.get(0).realNumber);
+            System.out.println("second packet:" + unsortedFile.get(1).realNumber);
+            System.out.println("==================================");
+        }
+
+
+        return allPacketData;
     }
 
 //    public static void pAll(ArrayList<PacketData> packetDatas) {

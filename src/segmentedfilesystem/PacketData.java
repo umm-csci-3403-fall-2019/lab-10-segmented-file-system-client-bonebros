@@ -1,11 +1,13 @@
 package segmentedfilesystem;
 
 import java.util.Arrays;
+import java.nio.ByteBuffer;
 
 public class PacketData {
 
     byte fileId;
     byte[] packetNumber = new byte[2];
+    short realNumber;
     byte[] data;
     boolean last = false;
     boolean header = false;
@@ -30,7 +32,16 @@ public class PacketData {
             this.packetNumber[0] = packetData[2];
             this.packetNumber[1] = packetData[3];
             this.data = Arrays.copyOfRange(packetData, 4, packetData.length);
+            this.realNumber = ByteBuffer.wrap(this.packetNumber).getShort();
         }
+    }
+
+    public Integer getPacketNumber() {
+        return (int) this.realNumber;
+    }
+
+    public void printPacketNumber() {
+        System.out.println( ByteBuffer.wrap(this.packetNumber).getShort() );
     }
 
 }
