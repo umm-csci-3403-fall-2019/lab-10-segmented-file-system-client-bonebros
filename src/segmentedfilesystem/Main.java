@@ -150,9 +150,15 @@ public class Main {
 
         for (ArrayList<PacketData> unsortedFile : unsortedFiles) {
             unsortedFile.sort(new FileSorter());
-            System.out.println("first packet:" + unsortedFile.get(0).realNumber);
-            System.out.println("second packet:" + unsortedFile.get(1).realNumber);
-            System.out.println("==================================");
+
+//            try {
+//                System.out.println("first packet:" + unsortedFile.get(0).realNumber);
+//                System.out.println("second packet:" + unsortedFile.get(1).realNumber);
+//                System.out.println("third packet:" + unsortedFile.get(2).realNumber);
+//                System.out.println("==================================");
+//            } catch (IndexOutOfBoundsException ex) {
+//                continue;
+//            }
         }
 
 

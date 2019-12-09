@@ -26,6 +26,7 @@ public class PacketData {
         if(packetData[0] % 2 == 0) {
             this.header = true;
             this.data = Arrays.copyOfRange(packetData, 2, packetData.length);
+            this.realNumber = -1;
         }
         // Otherwise, is data packet
         else {
