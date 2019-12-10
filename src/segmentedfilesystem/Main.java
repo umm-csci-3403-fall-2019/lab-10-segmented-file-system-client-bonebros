@@ -1,5 +1,8 @@
 package segmentedfilesystem;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
@@ -24,16 +27,35 @@ public class Main {
         System.out.println("Receiving started...");
         ArrayList<PacketData> allPacketData = new ArrayList<PacketData>(1);
 
+        // It is implied that we are receiving 3 files. It is safe to say that when we receive 3 end packets, then
+        // we sufficient information to reset 'maxPackets'
         int count = 0;
-        while ( count < 553 ) {
+        int[] endPacketNums = new int[3];
+        int endCount = 0;
+        int maxPackets = Integer.MAX_VALUE;
+        while ( count < maxPackets) {
             System.out.println(count);
             count++;
 
+            // Take the received packet, create a PacketData, and append to arraylist.
             packet = new DatagramPacket(buf, buf.length);
             socket.receive(packet);
-
             PacketData packetData = new PacketData(packet.getData());
             allPacketData.add(packetData);
+
+            if (packetData.header) {
+                System.out.println(new String(buf, packet.getOffset(), packet.getLength()));
+            }
+
+            // Now check to see if it's an end packet, and reset the while loop condition if we have 3.
+            if (packetData.last) {
+                endPacketNums[endCount] = packetData.realNumber;
+                endCount++;
+                if (endCount == 3) {
+                    maxPackets = sumArray(endPacketNums) + 6; // plus 3 for the headers, plus another 3 for 0-based indexing
+                }
+            }
+
         }
 
         System.out.println("Done receiving!");
@@ -46,23 +68,20 @@ public class Main {
         else {return;}
     }
 
+    public static int sumArray(int[] packetNums) {
+        int sum = 0;
+        for (int num : packetNums) {
+            sum = sum + num;
+        }
+        return sum;
+    }
+
     public static void debug(ArrayList<PacketData> allPacketData) {
         System.out.println("Debug started...please enter command");
         Scanner sn = new Scanner(System.in);
         while (true) {
             String input = sn.next();
             switch(input) {
-                case "p":
-                    System.out.println("enter index of PacketData to query");
-                    int index = sn.nextInt();
-                    queryPacket( allPacketData.get(index) );
-                    break;
-//                case "pall":
-//                    pAll(allPacketData);
-//                    break;
-                case "list":
-                    sortPacketsById(allPacketData);
-                    break;
                 case "files":
                     System.out.println("Making files...");
                     makeFiles(allPacketData);
@@ -75,45 +94,44 @@ public class Main {
         }
     }
 
-    public static void queryPacket(PacketData packetData) {
 
-        System.out.println("Enter name of field to query.");
-        Scanner sn1 = new Scanner(System.in);
-        while (true) {
-            String input = sn1.next();
-            if (input.equals("q")) {
-                System.out.println("Returning to top...");
-                return;
+    public static ArrayList<PacketData> makeFiles(ArrayList<PacketData> allPacketData) {
+
+        // Sort the packets by fileId into separate ArrayLists. Then add each to another ArrayList.
+        ArrayList<ArrayList<PacketData>> unsortedFiles = sortPacketsById(allPacketData);
+
+        // Now sort each packet list by the packet number.
+        int count = 0;
+        for (ArrayList<PacketData> unsortedFile : unsortedFiles) {
+
+            // Sort the packets
+            unsortedFile.sort(new FileSorter());
+
+            // Time to write to the file.
+            count++;
+            File file = new File( "test" + count);
+            FileOutputStream fos = null;
+            try {
+                fos = new FileOutputStream(file);
+                for (int i = 1; i < unsortedFile.size(); i++) {
+                    fos.write(unsortedFile.get(i).data);
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
             }
-            else if (input.equals("h")) {
-                System.out.println( "commands: id, last, header, num");
-            }
-            else if (input.equals("id")) {
-                System.out.println( packetData.fileId);
-            }
-            else if (input.equals("last")) {
-                System.out.println( packetData.last);
-            }
-            else if (input.equals("header")) {
-                System.out.println( packetData.header);
-            }
-            else if (input.equals("num")) {
-                packetData.printPacketNumber();
+            finally {
+                if (fos != null) {
+                    try {
+                        fos.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
 
-            System.out.println("Enter another query? (Enter 'q' to return to DEBUG ... 'h' for help)");
+
         }
-    }
-
-    public static ArrayList<Byte> getUniqueIds(ArrayList<PacketData> allPacketData) {
-        ArrayList<Byte> ids = new ArrayList<>();
-        for (PacketData packetData : allPacketData) {
-            if (! (ids.contains(packetData.fileId))) {
-                ids.add(packetData.fileId);
-            }
-        }
-        System.out.println(ids);
-        return ids;
+        return allPacketData;
     }
 
     public static ArrayList<ArrayList<PacketData>> sortPacketsById(ArrayList<PacketData> allPacketData) {
@@ -143,50 +161,15 @@ public class Main {
         return filesList;
     }
 
-    public static ArrayList<PacketData> makeFiles(ArrayList<PacketData> allPacketData) {
-
-        // Take the packet list, sort into separate (unsorted) arrays by file
-        ArrayList<ArrayList<PacketData>> unsortedFiles = sortPacketsById(allPacketData);
-
-        for (ArrayList<PacketData> unsortedFile : unsortedFiles) {
-            unsortedFile.sort(new FileSorter());
-
-//            try {
-//                System.out.println("first packet:" + unsortedFile.get(0).realNumber);
-//                System.out.println("second packet:" + unsortedFile.get(1).realNumber);
-//                System.out.println("third packet:" + unsortedFile.get(2).realNumber);
-//                System.out.println("==================================");
-//            } catch (IndexOutOfBoundsException ex) {
-//                continue;
-//            }
+    public static ArrayList<Byte> getUniqueIds(ArrayList<PacketData> allPacketData) {
+        ArrayList<Byte> ids = new ArrayList<>();
+        for (PacketData packetData : allPacketData) {
+            if (! (ids.contains(packetData.fileId))) {
+                ids.add(packetData.fileId);
+            }
         }
-
-
-        return allPacketData;
+        System.out.println(ids);
+        return ids;
     }
-
-//    public static void pAll(ArrayList<PacketData> packetDatas) {
-//
-//        System.out.println("Enter the index of the byte-arrays (to print for all)");
-//        Scanner sn1 = new Scanner(System.in);
-//        while (true) {
-//
-//            String input = sn1.next();
-//            if (input.equals("q")) {
-//                System.out.println("Returning to top...");
-//                return;
-//            }
-//            else {
-//                for (int i = 0; i < packets.size(); i++) {
-//                    System.out.println( packets.get(i).getData()[ Integer.parseInt(input) ] );
-//                }
-//            }
-//            System.out.println("Enter another index?");
-//        }
-//
-//
-//    }
-
-
 
 }
