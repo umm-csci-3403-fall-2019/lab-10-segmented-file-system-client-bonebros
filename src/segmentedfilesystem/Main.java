@@ -109,7 +109,7 @@ public class Main {
 
             // Time to write to the file.
             count++;
-            File file = new File( "test" + count);
+            File file = new File( "testfiles" + count);
             FileOutputStream fos = null;
             try {
                 fos = new FileOutputStream(file);

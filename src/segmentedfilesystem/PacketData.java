@@ -39,7 +39,8 @@ public class PacketData {
             if(last) {
                 this.packetNumber[0] = packetData[2];
                 this.packetNumber[1] = packetData[3];
-                this.data = Arrays.copyOfRange(packetData, offset, packetLength);
+                this.data = Arrays.copyOfRange(packetData, 4, packetLength);
+                this.realNumber = ByteBuffer.wrap(this.packetNumber).getShort();
             } else {
                 this.packetNumber[0] = packetData[2];
                 this.packetNumber[1] = packetData[3];
