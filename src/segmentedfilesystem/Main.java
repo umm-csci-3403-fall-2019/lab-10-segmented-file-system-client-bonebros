@@ -1,12 +1,10 @@
 package segmentedfilesystem;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Scanner;
 
 public class Main {
@@ -33,14 +31,16 @@ public class Main {
         int[] endPacketNums = new int[3];
         int endCount = 0;
         int maxPackets = Integer.MAX_VALUE;
-        while ( count < maxPackets) {
+        while (count < maxPackets) {
             System.out.println(count);
             count++;
 
             // Take the received packet, create a PacketData, and append to arraylist.
             packet = new DatagramPacket(buf, buf.length);
             socket.receive(packet);
-            PacketData packetData = new PacketData(packet.getData());
+//            PacketData packetData = new PacketData(packet.getData());
+            PacketData packetData = new PacketData(packet.getData(), packet.getOffset(), packet.getLength());
+
             allPacketData.add(packetData);
 
             if (packetData.header) {
@@ -54,8 +54,8 @@ public class Main {
                 if (endCount == 3) {
                     maxPackets = sumArray(endPacketNums) + 6; // plus 3 for the headers, plus another 3 for 0-based indexing
                 }
+                System.out.println("actual end length" + new String(buf, 0, packet.getLength()));
             }
-
         }
 
         System.out.println("Done receiving!");
