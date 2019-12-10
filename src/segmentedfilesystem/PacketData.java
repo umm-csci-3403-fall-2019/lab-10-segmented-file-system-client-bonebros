@@ -31,22 +31,22 @@ public class PacketData {
         // Check if is header packet
         if(packetData[0] % 2 == 0) {
             this.header = true;
-            this.data = Arrays.copyOfRange(packetData, 2, packetData.length);
+            this.data = Arrays.copyOfRange(packetData, 2, packetLength);
             this.realNumber = -1;
         }
         // Otherwise, is data packet
         else {
-            if(last) {
+//            if(last) {
+//                this.packetNumber[0] = packetData[2];
+//                this.packetNumber[1] = packetData[3];
+//                this.data = Arrays.copyOfRange(packetData, 4, packetLength);
+//                this.realNumber = ByteBuffer.wrap(this.packetNumber).getShort();
+//            } else {
                 this.packetNumber[0] = packetData[2];
                 this.packetNumber[1] = packetData[3];
                 this.data = Arrays.copyOfRange(packetData, 4, packetLength);
                 this.realNumber = ByteBuffer.wrap(this.packetNumber).getShort();
-            } else {
-                this.packetNumber[0] = packetData[2];
-                this.packetNumber[1] = packetData[3];
-                this.data = Arrays.copyOfRange(packetData, 4, packetData.length);
-                this.realNumber = ByteBuffer.wrap(this.packetNumber).getShort();
-            }
+//            }
 
         }
     }

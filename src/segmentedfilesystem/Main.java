@@ -82,6 +82,11 @@ public class Main {
         while (true) {
             String input = sn.next();
             switch(input) {
+                case "fuck you":
+                    for (int i = 0; i < 10; i++) {
+                        System.out.println("No, FUCK YOU ASSHOLE!");
+                        return;
+                    }
                 case "files":
                     System.out.println("Making files...");
                     makeFiles(allPacketData);
@@ -109,7 +114,7 @@ public class Main {
 
             // Time to write to the file.
             count++;
-            File file = new File( "testfiles" + count);
+            File file = new File( new String(unsortedFile.get(0).data));
             FileOutputStream fos = null;
             try {
                 fos = new FileOutputStream(file);
