@@ -26,79 +26,32 @@ public class Main {
         ArrayList<PacketData> allPacketData = new ArrayList<PacketData>(1);
 
         // It is implied that we are receiving 3 files. It is safe to say that when we receive 3 end packets, then
-        // we sufficient information to reset 'maxPackets'
-        int count = 0;
-        int[] endPacketNums = new int[3];
-        int endCount = 0;
-        int maxPackets = Integer.MAX_VALUE;
+        // we sufficient information to reset 'maxPackets'. But we don't the limit until we get the end packets, so
+        // it is set to maximum value.
+
+        int count = 0;  int maxPackets = Integer.MAX_VALUE;
+        int endCount = 0; int[] endPacketNums = new int[3];
         while (count < maxPackets) {
-            System.out.println(count);
             count++;
 
             // Take the received packet, create a PacketData, and append to arraylist.
             packet = new DatagramPacket(buf, buf.length);
             socket.receive(packet);
-//            PacketData packetData = new PacketData(packet.getData());
-            PacketData packetData = new PacketData(packet.getData(), packet.getOffset(), packet.getLength());
-
+            PacketData packetData = new PacketData(packet.getData(), packet.getLength());
             allPacketData.add(packetData);
 
-            if (packetData.header) {
-                System.out.println(new String(buf, packet.getOffset(), packet.getLength()));
-            }
-
-            // Now check to see if it's an end packet, and reset the while loop condition if we have 3.
+            // Now check to see if it's an end packet, and reset the while loop condition if we have 3 total.
             if (packetData.last) {
-                endPacketNums[endCount] = packetData.realNumber;
+                endPacketNums[endCount] = packetData.realNumber; // This array contains the highest packet number for each file.
                 endCount++;
                 if (endCount == 3) {
                     maxPackets = sumArray(endPacketNums) + 6; // plus 3 for the headers, plus another 3 for 0-based indexing
                 }
-                System.out.println("actual end length" + new String(buf, 0, packet.getLength()));
             }
         }
-
         System.out.println("Done receiving!");
-        System.out.println("Start debug? <enter 'y' to start>");
-
-        Scanner mainScan = new Scanner(System.in);
-        String debug = mainScan.next();
-
-        if (debug.equals("y")) { debug(allPacketData); }
-        else {return;}
+        makeFiles(allPacketData);
     }
-
-    public static int sumArray(int[] packetNums) {
-        int sum = 0;
-        for (int num : packetNums) {
-            sum = sum + num;
-        }
-        return sum;
-    }
-
-    public static void debug(ArrayList<PacketData> allPacketData) {
-        System.out.println("Debug started...please enter command");
-        Scanner sn = new Scanner(System.in);
-        while (true) {
-            String input = sn.next();
-            switch(input) {
-                case "fuck you":
-                    for (int i = 0; i < 10; i++) {
-                        System.out.println("No, FUCK YOU ASSHOLE!");
-                        return;
-                    }
-                case "files":
-                    System.out.println("Making files...");
-                    makeFiles(allPacketData);
-                    break;
-                case "q":
-                    System.out.println("leaving...");
-                    return;
-            }
-            System.out.println("Anything else?");
-        }
-    }
-
 
     public static ArrayList<PacketData> makeFiles(ArrayList<PacketData> allPacketData) {
 
@@ -106,39 +59,16 @@ public class Main {
         ArrayList<ArrayList<PacketData>> unsortedFiles = sortPacketsById(allPacketData);
 
         // Now sort each packet list by the packet number.
-        int count = 0;
         for (ArrayList<PacketData> unsortedFile : unsortedFiles) {
 
-            // Sort the packets
+            // Sort the packets using enumerator and write to file
             unsortedFile.sort(new FileSorter());
-
-            // Time to write to the file.
-            count++;
-            File file = new File( new String(unsortedFile.get(0).data));
-            FileOutputStream fos = null;
-            try {
-                fos = new FileOutputStream(file);
-                for (int i = 1; i < unsortedFile.size(); i++) {
-                    fos.write(unsortedFile.get(i).data);
-                }
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-            finally {
-                if (fos != null) {
-                    try {
-                        fos.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-
-
+            writeToFile(unsortedFile);
         }
         return allPacketData;
     }
 
+    // Separates all of the packets per each file into their respective file grouping, but in no particular order
     public static ArrayList<ArrayList<PacketData>> sortPacketsById(ArrayList<PacketData> allPacketData) {
         ArrayList<PacketData> file1 = new ArrayList<>();
         ArrayList<PacketData> file2 = new ArrayList<>();
@@ -156,25 +86,57 @@ public class Main {
             }
         }
 
-        System.out.println("f1: " + file1.size());
-        System.out.println("f2: " + file2.size());
-        System.out.println("f3: " + file3.size());
-
         ArrayList<ArrayList<PacketData>> filesList = new ArrayList<>();
         filesList.add(file1); filesList.add(file2); filesList.add(file3);
 
         return filesList;
     }
 
+    // Retrieves all of the file ID's
     public static ArrayList<Byte> getUniqueIds(ArrayList<PacketData> allPacketData) {
         ArrayList<Byte> ids = new ArrayList<>();
+
+        // For each packet, if we encounter a new id, add it to the list.
         for (PacketData packetData : allPacketData) {
             if (! (ids.contains(packetData.fileId))) {
                 ids.add(packetData.fileId);
             }
         }
-        System.out.println(ids);
         return ids;
+    }
+
+    public static void writeToFile(ArrayList<PacketData> unsortedFile) {
+
+        // Get the data from the header packet, and use that as the filename.
+        File file = new File( new String(unsortedFile.get(0).data) );
+
+        // Now start writing to the file...
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(file);
+            for (int i = 1; i < unsortedFile.size(); i++) {
+                fos.write(unsortedFile.get(i).data);
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        finally {
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public static int sumArray(int[] packetNums) {
+        int sum = 0;
+        for (int num : packetNums) {
+            sum = sum + num;
+        }
+        return sum;
     }
 
 }
