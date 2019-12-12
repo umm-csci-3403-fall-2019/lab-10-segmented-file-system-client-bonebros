@@ -12,12 +12,10 @@ public class PacketData {
     boolean last = false;
     boolean header = false;
 
-    int offset;
     int packetLength;
 
-    public PacketData(byte[] packetData, int off, int length) {
+    public PacketData(byte[] packetData, int length) {
 
-        this.offset = off;
         this.packetLength = length;
 
         // Check to see if it's the last packet
@@ -36,27 +34,14 @@ public class PacketData {
         }
         // Otherwise, is data packet
         else {
-//            if(last) {
-//                this.packetNumber[0] = packetData[2];
-//                this.packetNumber[1] = packetData[3];
-//                this.data = Arrays.copyOfRange(packetData, 4, packetLength);
-//                this.realNumber = ByteBuffer.wrap(this.packetNumber).getShort();
-//            } else {
-                this.packetNumber[0] = packetData[2];
-                this.packetNumber[1] = packetData[3];
-                this.data = Arrays.copyOfRange(packetData, 4, packetLength);
-                this.realNumber = ByteBuffer.wrap(this.packetNumber).getShort();
-//            }
-
+            this.packetNumber[0] = packetData[2];
+            this.packetNumber[1] = packetData[3];
+            this.data = Arrays.copyOfRange(packetData, 4, packetLength);
+            this.realNumber = ByteBuffer.wrap(this.packetNumber).getShort();
         }
     }
 
     public Integer getPacketNumber() {
         return (int) this.realNumber;
     }
-
-    public void printPacketNumber() {
-        System.out.println( ByteBuffer.wrap(this.packetNumber).getShort() );
-    }
-
 }
