@@ -13,7 +13,7 @@ public class Main {
 
         // Create the DG-socket
         DatagramSocket socket = new DatagramSocket();
-        byte[] buf = new byte[256];
+        byte[] buf = new byte[1028];
         InetAddress address = InetAddress.getByName("csci-4409.morris.umn.edu");
 
         // Note: the DG-packet contains an empty byte-array (buf). This is fine when requesting a response.
