@@ -4,8 +4,6 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import java.net.*;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 /**
@@ -58,6 +56,5 @@ public class DummyTest{
         byte fileID = dataBuffer[1];
         assertEquals(fileID, dataBuffer[2]); //retrieves right byte representation
         assertEquals((int) fileID, 2); //retrieves right int representation of the byte
-
     }
 }
