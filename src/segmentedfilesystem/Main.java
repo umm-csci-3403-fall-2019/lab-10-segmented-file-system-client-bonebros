@@ -5,7 +5,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
-import java.util.Scanner;
+
+//=========================================================================================================//
 
 public class Main {
     
@@ -53,6 +54,8 @@ public class Main {
         makeFiles(allPacketData);
     }
 
+    //=========================================================================================================//
+
     public static ArrayList<PacketData> makeFiles(ArrayList<PacketData> allPacketData) {
 
         // Sort the packets by fileId into separate ArrayLists. Then add each to another ArrayList.
@@ -67,6 +70,8 @@ public class Main {
         }
         return allPacketData;
     }
+
+    //=========================================================================================================//
 
     // Separates all of the packets per each file into their respective file grouping, but in no particular order
     public static ArrayList<ArrayList<PacketData>> sortPacketsById(ArrayList<PacketData> allPacketData) {
@@ -92,6 +97,9 @@ public class Main {
         return filesList;
     }
 
+
+    //=========================================================================================================//
+
     // Retrieves all of the file ID's
     public static ArrayList<Byte> getUniqueIds(ArrayList<PacketData> allPacketData) {
         ArrayList<Byte> ids = new ArrayList<>();
@@ -104,6 +112,8 @@ public class Main {
         }
         return ids;
     }
+
+    //=========================================================================================================//
 
     public static void writeToFile(ArrayList<PacketData> unsortedFile) {
 
@@ -131,6 +141,8 @@ public class Main {
         }
     }
 
+    //=========================================================================================================//
+
     public static int sumArray(int[] packetNums) {
         int sum = 0;
         for (int num : packetNums) {
@@ -138,5 +150,7 @@ public class Main {
         }
         return sum;
     }
+
+    //=========================================================================================================//
 
 }
